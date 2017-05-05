@@ -114,8 +114,10 @@ export class GSReader implements Reader{
                         results.push(new LSArray(arrayName, array));
                         arrayName = "";
                         isInArray = false;
-                    } else {
+                    } else if (isInArray){
                         array.push(new LSLine(keyValue, valValue));
+                    } else {
+                        results.push(new LSLine(keyValue, valValue));
                     }
                 }
             }

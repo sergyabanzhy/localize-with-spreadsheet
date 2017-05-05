@@ -98,8 +98,11 @@ var GSReader = (function () {
                         arrayName = "";
                         isInArray = false;
                     }
-                    else {
+                    else if (isInArray) {
                         array.push(new LSLine_1.LSLine(keyValue, valValue));
+                    }
+                    else {
+                        results.push(new LSLine_1.LSLine(keyValue, valValue));
                     }
                 }
             }
