@@ -19,7 +19,7 @@ var setup = function (fn) {
 
 
 exports.testRunFiles = setup(function (test) {
-    test.expect(24);
+    test.expect(33);
     var runModule_copy = nodeunit.runModule;
 
     var runModule_calls = [];
@@ -32,6 +32,9 @@ exports.testRunFiles = setup(function (test) {
         testDone: function () {
             return 'testDone';
         },
+        testReady: function () {
+            return 'testReady';
+        },
         testStart: function () {
             return 'testStart';
         },
@@ -40,7 +43,7 @@ exports.testRunFiles = setup(function (test) {
         },
         done: function (assertions) {
             test.equals(assertions.failures(), 0, 'failures');
-            test.equals(assertions.length, 4, 'length');
+            test.equals(assertions.length, 5, 'length');
             test.ok(typeof assertions.duration === "number");
 
             var called_with = function (name) {
@@ -52,7 +55,7 @@ exports.testRunFiles = setup(function (test) {
             test.ok(called_with('mock_module2'), 'mock_module2 ran');
             test.ok(called_with('mock_module3'), 'mock_module3 ran');
             test.ok(called_with('mock_module4'), 'mock_module4 ran');
-            test.equals(runModule_calls.length, 4);
+            test.equals(runModule_calls.length, 5);
 
             nodeunit.runModule = runModule_copy;
             test.done();
@@ -61,6 +64,7 @@ exports.testRunFiles = setup(function (test) {
 
     nodeunit.runModule = function (name, mod, options, callback) {
         test.equals(options.testDone, opts.testDone);
+        test.equals(options.testReady, opts.testReady);
         test.equals(options.testStart, opts.testStart);
         test.equals(options.log, opts.log);
         test.ok(typeof name === "string");
@@ -89,6 +93,9 @@ exports.testRunFilesEmpty = function (test) {
         testDone: function () {
             test.ok(false, 'should not be called');
         },
+        testReady: function () {
+            test.ok(false, 'should not be called');
+        },
         testStart: function () {
             test.ok(false, 'should not be called');
         },
@@ -109,8 +116,8 @@ exports.testEmptyDir = function (test) {
     var dir2 = __dirname + '/fixtures/dir2';
 
     // git doesn't like empty directories, so we have to create one
-    path.exists(dir2, function (exists) {
-        if (!exists) {
+    fs.access(dir2, function (err) {
+        if (err) {
             fs.mkdirSync(dir2, 0777);
         }
 
@@ -120,6 +127,9 @@ exports.testEmptyDir = function (test) {
                 test.ok(false, 'should not be called');
             },
             testDone: function () {
+                test.ok(false, 'should not be called');
+            },
+            testReady: function () {
                 test.ok(false, 'should not be called');
             },
             testStart: function () {
@@ -142,6 +152,9 @@ exports.testEmptyDir = function (test) {
 var CoffeeScript;
 try {
     CoffeeScript = require('coffee-script');
+    if (CoffeeScript.register != null) {
+        CoffeeScript.register();
+    }
 } catch (e) {
 }
 
@@ -153,7 +166,7 @@ if (CoffeeScript) {
                                         '/fixtures/coffee/mock_coffee_module')
         };
 
-        test.expect(9);
+        test.expect(10);
         var runModule_copy = nodeunit.runModule;
 
         var runModule_calls = [];
@@ -165,6 +178,9 @@ if (CoffeeScript) {
             },
             testDone: function () {
                 return 'testDone';
+            },
+            testReady: function () {
+                return 'testReady';
             },
             testStart: function () {
                 return 'testStart';
@@ -195,6 +211,7 @@ if (CoffeeScript) {
 
         nodeunit.runModule = function (name, mod, options, callback) {
             test.equals(options.testDone, opts.testDone);
+            test.equals(options.testReady, opts.testReady);
             test.equals(options.testStart, opts.testStart);
             test.equals(options.log, opts.log);
             test.ok(typeof name === "string");

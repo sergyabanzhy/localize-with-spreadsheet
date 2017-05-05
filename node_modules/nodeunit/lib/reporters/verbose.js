@@ -12,7 +12,7 @@ var nodeunit = require('../nodeunit'),
     utils = require('../utils'),
     fs = require('fs'),
     track = require('../track'),
-    path = require('path');
+    path = require('path'),
     AssertionError = require('../assert').AssertionError;
 
 /**
@@ -29,7 +29,7 @@ exports.info = "Verbose tests reporter"
  * @api public
  */
 
-exports.run = function (files, options) {
+exports.run = function (files, options, callback) {
 
     if (!options) {
         // load default options
@@ -51,10 +51,12 @@ exports.run = function (files, options) {
     var assertion_message = function (str) {
         return options.assertion_prefix + str + options.assertion_suffix;
     };
+    var pass_indicator = process.platform === 'win32' ? '\u221A' : '✔';
+    var fail_indicator = process.platform === 'win32' ? '\u00D7' : '✖';
 
     var start = new Date().getTime();
     var paths = files.map(function (p) {
-        return path.join(process.cwd(), p);
+        return path.resolve(p);
     });
     var tracker = track.createTracker(function (tracker) {
         if (tracker.unfinished()) {
@@ -82,20 +84,20 @@ exports.run = function (files, options) {
             tracker.remove(name);
 
             if (!assertions.failures()) {
-                console.log('✔ ' + name);
+                console.log(pass_indicator + ' ' + name);
             }
             else {
-                console.log(error('✖ ' + name));
+                console.log(error(fail_indicator + ' ' + name));
             }
             // verbose so print everything
             assertions.forEach(function (a) {
               if (a.failed()) {
-                console.log(error('  ✖ ' + a.message));
+                console.log(error('  ' + fail_indicator + ' ' + a.message));
                 a = utils.betterErrors(a);
                 console.log('  ' + a.error.stack);
               }
               else {
-                console.log('  ✔ ' + a.message);
+                console.log('  ' + pass_indicator + ' ' + a.message);
               }
             });
         },
@@ -115,6 +117,8 @@ exports.run = function (files, options) {
                    ' assertions (' + assertions.duration + 'ms)'
                 );
             }
+            
+            if (callback) callback(assertions.failures() ? new Error('We have got test failures.') : undefined);
         },
         testStart: function(name) {
             tracker.put(name);

@@ -1,5 +1,6 @@
-var transformer = require("../core/Transformer.js")['android'];
+var AndroidTransformer = require("../core/transformer/AndroidTransformer").AndroidTransformer;
 var EOL = require('os').EOL;
+var transformer = new AndroidTransformer();
 
 exports.testComment = function (test) {
     var result = transformer.transformComment('un commentaire');

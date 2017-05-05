@@ -29,7 +29,7 @@ exports.info = "Nested test reporter";
  * @api public
  */
 
-exports.run = function (files, options) {
+exports.run = function (files, options, callback) {
 
     if (!options) {
         // load default options
@@ -52,12 +52,13 @@ exports.run = function (files, options) {
     var assertion_message = function (str) {
         return options.assertion_prefix + str + options.assertion_suffix;
     };
+    var fail_indicator = process.platform === 'win32' ? '\u00D7' : '✖';
 
     var spaces_per_indent = options.spaces_per_indent || 4;
 
     var start = new Date().getTime();
     var paths = files.map(function (p) {
-        return path.join(process.cwd(), p);
+        return path.resolve(p);
     });
     var tracker = track.createTracker(function (tracker) {
         var i, names;
@@ -86,7 +87,7 @@ exports.run = function (files, options) {
     };
 
     var fail_text = function (txt) {
-        return bold(error(txt + " (fail) ✖ "));
+        return bold(error(txt + " (fail) " + fail_indicator + " "));
     };
 
     var status_text = function (txt, status) {
@@ -206,6 +207,8 @@ exports.run = function (files, options) {
                         ' assertions (' + assertions.duration + 'ms)'
                 );
             }
+            
+            if (callback) callback(assertions.failures() ? new Error('We have got test failures.') : undefined);
         },
         testStart: function (name) {
             tracker.put(name);

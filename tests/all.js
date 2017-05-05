@@ -1,8 +1,9 @@
 var reporter = require('nodeunit').reporters.default;
 reporter.run([
-    'tests/AndroidTransformerTests.js',
-    'tests/iOSTransformerTests.js',
-    'tests/LineTests.js',
-    'tests/GSReaderTests.js',
-    'tests/WriterTests.js'
+    './AndroidTransformerTests.js',
+    './iOSTransformerTests.js',
+    './LineTests.js',
+    './GSReaderTests.js',
+    './WriterTests.js',
+    './ArrayTests.js'
 ]);

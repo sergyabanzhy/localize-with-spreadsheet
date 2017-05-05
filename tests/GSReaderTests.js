@@ -1,4 +1,4 @@
-var GSReader = require("../core/LineReader.js").GS;
+var GSReader = require("../core/reader/GSReader").GSReader;
 
 exports.testShouldUseWorksheetWhenEmptyOrNullOrStar = function(test) {
     test.equal(true, GSReader.shouldUseWorksheet('', 'LeTitre', 1));
@@ -7,21 +7,21 @@ exports.testShouldUseWorksheetWhenEmptyOrNullOrStar = function(test) {
     test.equal(false, GSReader.shouldUseWorksheet('a', 'LeTitre', 1));
 
     test.done();
-}
+};
 
 exports.testShouldNotUseWorksheetWhenTitleNotSpecified = function(test) {
     test.equal(false, GSReader.shouldUseWorksheet(['a', 'b'], 'LeTitre', 1));
     test.equal(false, GSReader.shouldUseWorksheet(['a', 2], 'LeTitre', 1));
 
     test.done();
-}
+};
 
 exports.testShouldUseWorksheetWhenTitleOrIndexSpecified = function(test) {
     test.equal(true, GSReader.shouldUseWorksheet(['a', 'LeTitre'], 'LeTitre', 1));
     test.equal(true, GSReader.shouldUseWorksheet(['a', 1], 'LeTitre', 1));
 
     test.done();
-}
+};
 
 exports.testExtractFromWorksheetShouldExtraLines = function(test) {
     var reader = new GSReader('api_key', '*');

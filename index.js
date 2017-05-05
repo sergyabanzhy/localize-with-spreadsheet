@@ -1,76 +1,68 @@
-var GSReader = require('./core/LineReader.js').GS;
-var FileWriter = require('./core/Writer.js').File;
-var Transformer = require('./core/Transformer.js');
-
-var Gs2File = function (reader, writer) {
-    this._reader = reader;
-    this._writer = writer;
-};
-
-Gs2File.fromGoogleSpreadsheet = function (spreadsheetKey, sheets) {
-    var gs2file = new Gs2File(new GSReader(spreadsheetKey, sheets),
-        new FileWriter());
-
-    return gs2file;
-};
-
-Gs2File.prototype.setValueCol = function (valueCol) {
-    this._defaultValueCol = valueCol;
-}
-
-Gs2File.prototype.setKeyCol = function (keyCol) {
-    this._defaultKeyCol = keyCol;
-}
-
-Gs2File.prototype.setFormat = function (format) {
-    this._defaultFormat = format;
-}
-
-Gs2File.prototype.setEncoding = function (encoding) {
-    this._defaultEncoding = encoding;
-}
-
-Gs2File.prototype.save = function (outputPath, opts, cb) {
-    console.log('saving ' + outputPath);
-    var self = this;
-
-    opts = opts || {};
-
-    var keyCol = opts.keyCol,
-        valueCol = opts.valueCol,
-        format = opts.format,
-        encoding = opts.encoding;
-
-    if (!keyCol) {
-        keyCol = this._defaultKeyCol;
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var GSReader_1 = require("./core/reader/GSReader");
+var FileWriter_1 = require("./core/writer/FileWriter");
+var TransformerFactory_1 = require("./core/transformer/TransformerFactory");
+var Gs2File = (function () {
+    function Gs2File(reader, writer) {
+        this.defaultValueCol = "";
+        this.defaultKeyCol = "";
+        this.defaultFormat = "";
+        this.defaultEncoding = "";
+        this.setValueCol = function (valueCol) {
+            this._defaultValueCol = valueCol;
+        };
+        this.setKeyCol = function (keyCol) {
+            this._defaultKeyCol = keyCol;
+        };
+        this.setFormat = function (format) {
+            this._defaultFormat = format;
+        };
+        this.setEncoding = function (encoding) {
+            this._defaultEncoding = encoding;
+        };
+        this.reader = reader;
+        this.writer = writer;
     }
-
-    if (!valueCol) {
-        valueCol = this._defaultValueCol;
-    }
-
-    if (!format) {
-        format = this._defaultFormat;
-    }
-
-    if(!encoding) {
-        encoding = this._defaultEncoding;
-        if(!encoding) {
-            encoding = 'utf8';
+    Gs2File.fromGoogleSpreadsheet = function (spreadsheetKey, sheets) {
+        var fileWriter = new FileWriter_1.FileWriter();
+        return new Gs2File(new GSReader_1.GSReader(spreadsheetKey, sheets), fileWriter);
+    };
+    ;
+    Gs2File.prototype.save = function (outputPath, opts, cb) {
+        console.log('saving ' + outputPath);
+        var self = this;
+        this.opts = opts || {};
+        var keyCol = opts.keyCol, valueCol = opts.valueCol, format = opts.format, encoding = opts.encoding;
+        if (!keyCol) {
+            keyCol = this.defaultKeyCol;
         }
-    }
-
-    this._reader.select(keyCol, valueCol).then(function (lines) {
-        if (lines) {
-            var transformer = Transformer[format || 'android'];
-            self._writer.write(outputPath, encoding, lines, transformer, opts);
+        if (!valueCol) {
+            valueCol = this.defaultValueCol;
         }
-
-        if (typeof(cb) == 'function') {
-            cb();
+        if (!format) {
+            format = this.defaultFormat;
         }
-    });
-
-};
-
-module.exports = Gs2File;
+        if (!encoding) {
+            encoding = this.defaultEncoding;
+            if (!encoding) {
+                encoding = 'utf8';
+            }
+            opts.encoding = encoding;
+        }
+        this.reader
+            .select([], keyCol, valueCol, null)
+            .then(function (lines) {
+            if (lines) {
+                var transformer = TransformerFactory_1.TransformerFactory.create(format);
+                self.writer.write(outputPath, lines, transformer, opts);
+            }
+            if (typeof (cb) === 'function') {
+                cb();
+            }
+        });
+    };
+    ;
+    return Gs2File;
+}());
+exports.Gs2File = Gs2File;

@@ -5,7 +5,8 @@
 var nodeunit = require('../nodeunit'),
     path = require('path'),
     assert = require('tap').assert,
-    TapProducer = require('tap').Producer;
+    tap = require('tap'),
+    fs = require('fs');
 
 /**
  * Reporter info string
@@ -20,7 +21,7 @@ exports.info = "TAP output";
  * @api public
  */
 
-exports.run = function (files, options) {
+exports.run = function (files, options, callback) {
 
     if (!options) {
         // load default options
@@ -31,14 +32,14 @@ exports.run = function (files, options) {
     }
 
     var paths = files.map(function (p) {
-        return path.join(process.cwd(), p);
+        return path.resolve(p);
     });
-    var output = new TapProducer();
-    output.pipe(process.stdout);
+
+    tap.pipe(process.stdout);
 
     nodeunit.runFiles(paths, {
         testStart: function (name) {
-            output.write(name.toString());
+            tap.comment(name.toString());
         },
         testDone: function (name, assertions) {
             assertions.forEach(function (e) {
@@ -55,11 +56,12 @@ exports.run = function (files, options) {
                     extra.wanted = e.error.expected;
                     extra.found = e.error.actual;
                 }
-                output.write(assert(e.passed(), e.message, extra));
+                tap.assert(e.passed(), e.message, extra);
             });
         },
         done: function (assertions) {
-            output.end();
+            tap.end();
+            if (callback) callback(assertions.failures() ? new Error('We have got test failures.') : undefined);
         }
     });
 };

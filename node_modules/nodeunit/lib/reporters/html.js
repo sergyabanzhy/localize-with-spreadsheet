@@ -12,7 +12,7 @@ var nodeunit = require('../nodeunit'),
     utils = require('../utils'),
     fs = require('fs'),
     path = require('path'),
-    AssertionError = require('assert').AssertionError;
+    AssertionError = require('../assert').AssertionError;
 
 /**
  * Reporter info string
@@ -31,7 +31,7 @@ exports.run = function (files, options, callback) {
 
     var start = new Date().getTime();
     var paths = files.map(function (p) {
-        return path.join(process.cwd(), p);
+        return path.resolve(p);
     });
 
     console.log('<html>');
