@@ -42,7 +42,7 @@ var LSLine = (function () {
         return this._isComment;
     };
     LSLine.prototype.getComment = function () {
-        return this._key;
+        return (this._isComment) ? this._key : "";
     };
     LSLine.prototype.getKey = function () {
         return this._key;

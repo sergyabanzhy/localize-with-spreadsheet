@@ -4,6 +4,8 @@ import {Transformer} from "../transformer/Transformer";
 import {EOL} from "os";
 import * as fs from "fs";
 import {Options} from "../modeles/Options";
+import {LSEntity} from "../modeles/LSEntity";
+import {LSArray} from "../modeles/LSArray";
 /**
  * Created by amatsegor on 5/4/17.
  */
@@ -13,35 +15,35 @@ export class FileWriter implements AbstractWriter {
     constructor() {
     }
 
-    write(filePath: string, lines: Array<LSLine>, transformer: Transformer, options: Options) {
-        var fileContent;
+    write(filePath: string, entities: Array<LSEntity>, transformer: Transformer, options: Options) {
+        let fileContent;
         if (fs.existsSync(filePath)) {
             fileContent = fs.readFileSync(filePath, options.encoding);
         }
 
-        var valueToInsert = this.getTransformedLines(lines, transformer);
-
-        var output = transformer.insert(fileContent, valueToInsert, options);
+        const valueToInsert = this.getTransformedLines(entities, transformer);
+        const output = transformer.insert(fileContent, valueToInsert, options);
 
         FileWriter.writeFileAndCreateDirectoriesSync(filePath, output, 'utf8');
     }
 
-    getTransformedLines(lines: Array<LSLine>, transformer: Transformer) {
-        var valueToInsert = '';
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            if (!line.isEmpty()) {
-                if (line.isComment()) {
-                    valueToInsert += transformer.transformComment(line.getComment());
-                } else {
-                    valueToInsert += transformer.transformKeyValue(line.getKey(), line.getValue());
+    getTransformedLines(entities: Array<LSEntity>, transformer: Transformer) {
+        let valueToInsert = '';
+        entities.filter(entity => !entity.isEmpty())
+            .forEach((entity, index) => {
+                if (entity instanceof LSLine) {
+                    if (entity.isComment()) {
+                        valueToInsert += transformer.transformComment(entity.getComment());
+                    } else {
+                        valueToInsert += transformer.transformKeyValue(entity.getKey(), entity.getValue());
+                    }
+                } else if (entity instanceof LSArray) {
+                    valueToInsert += transformer.transformArray(entity);
                 }
-            }
-            if (i != lines.length - 1) {
-                valueToInsert += EOL;
-            }
-        }
-
+                if (index != entities.length - 1) {
+                    valueToInsert += EOL;
+                }
+            });
         return valueToInsert;
     }
 

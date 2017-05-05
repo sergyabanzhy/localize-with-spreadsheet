@@ -1,4 +1,5 @@
 var AndroidTransformer = require("../core/transformer/AndroidTransformer").AndroidTransformer;
+var LSArray = require("../core/modeles/LSArray").LSArray;
 var EOL = require('os').EOL;
 var transformer = new AndroidTransformer();
 
@@ -15,6 +16,23 @@ exports.testKeyValue = function (test) {
 
     test.done();
 };
+
+exports.testArray = function (test) {
+    var lsArray = {
+        key: "array-key",
+        array: [
+            {_key: "string1", _value: "value1"},
+            {_key: "string2", _value: "value2"},
+            {_key: "string3", _value: "value3"}
+        ]
+    };
+    var line = transformer.transformArray(lsArray);
+    test.equal("<string-array name=\"array-key\">\n<item>value1</item>\n<item>value2</item>\n<item>value3</item>\n</string-array>", line);
+
+    test.done();
+};
+
+
 
 exports.testMultipleFormat = function (test) {
     var line = transformer.transformKeyValue('ma_cle', 'La valeur %s et %s');

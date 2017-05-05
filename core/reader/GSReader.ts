@@ -8,6 +8,7 @@ import {WorksheetReader} from "./WorksheetReader";
 import {LSLine} from "../modeles/LSLine";
 import {LSArray} from "../modeles/LSArray";
 import {Reader} from "./Reader";
+import {LSEntity} from "../modeles/LSEntity";
 
 const EOL = require('os').EOL;
 //language=RegExp
@@ -15,7 +16,7 @@ const arrayStartRegex = new RegExp("\\[[\\w\\-_]+]");
 //language=RegExp
 const arrayEndRegex = new RegExp("\\[/\\S+]");
 
-export class GSReader implements Reader{
+export class GSReader implements Reader {
 
     sheet: GoogleSpreadsheet;
     sheetsFilter: string;
@@ -58,12 +59,12 @@ export class GSReader implements Reader{
         }
     };
 
-    select(keyCol, valCol) {
+    select(keyCol, valCol): Promise<LSEntity[]> {
         var deferred = Q.defer();
         var self = this;
 
         Q.when(self.fetchAllCells(), function (worksheets) {
-            var extractedLines = this.extractFromRawData(worksheets, keyCol, valCol);
+            const extractedLines = this.extractFromRawData(worksheets, keyCol, valCol);
             deferred.resolve(extractedLines);
         }).fail(function (error) {
             //console.error('Cannot fetch data');
@@ -72,7 +73,7 @@ export class GSReader implements Reader{
         return deferred.promise;
     };
 
-    extractFromRawData(rawWorksheets, keyCol, valCol) {
+    extractFromRawData(rawWorksheets, keyCol, valCol): LSEntity[] {
         var extractedLines = [];
         for (var i = 0; i < rawWorksheets.length; i++) {
             var extracted = this.extractFromWorksheet(rawWorksheets[i], keyCol, valCol);
@@ -82,10 +83,10 @@ export class GSReader implements Reader{
         return extractedLines;
     };
 
-    extractFromWorksheet(rawWorksheet, keyCol, valCol) {
-        var results = [];
+    extractFromWorksheet(rawWorksheet, keyCol, valCol): LSEntity[] {
+        const results = [];
 
-        var rows = this.flattenWorksheet(rawWorksheet);
+        const rows = this.flattenWorksheet(rawWorksheet);
 
         var headers = rows[0];
         var isInArray = false;
@@ -114,7 +115,7 @@ export class GSReader implements Reader{
                         results.push(new LSArray(arrayName, array));
                         arrayName = "";
                         isInArray = false;
-                    } else if (isInArray){
+                    } else if (isInArray) {
                         array.push(new LSLine(keyValue, valValue));
                     } else {
                         results.push(new LSLine(keyValue, valValue));

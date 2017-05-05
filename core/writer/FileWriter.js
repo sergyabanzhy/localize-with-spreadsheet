@@ -1,38 +1,43 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var LSLine_1 = require("../modeles/LSLine");
 var os_1 = require("os");
 var fs = require("fs");
+var LSArray_1 = require("../modeles/LSArray");
 /**
  * Created by amatsegor on 5/4/17.
  */
 var FileWriter = (function () {
     function FileWriter() {
     }
-    FileWriter.prototype.write = function (filePath, lines, transformer, options) {
+    FileWriter.prototype.write = function (filePath, entities, transformer, options) {
         var fileContent;
         if (fs.existsSync(filePath)) {
             fileContent = fs.readFileSync(filePath, options.encoding);
         }
-        var valueToInsert = this.getTransformedLines(lines, transformer);
+        var valueToInsert = this.getTransformedLines(entities, transformer);
         var output = transformer.insert(fileContent, valueToInsert, options);
         FileWriter.writeFileAndCreateDirectoriesSync(filePath, output, 'utf8');
     };
-    FileWriter.prototype.getTransformedLines = function (lines, transformer) {
+    FileWriter.prototype.getTransformedLines = function (entities, transformer) {
         var valueToInsert = '';
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            if (!line.isEmpty()) {
-                if (line.isComment()) {
-                    valueToInsert += transformer.transformComment(line.getComment());
+        entities.filter(function (entity) { return !entity.isEmpty(); })
+            .forEach(function (entity, index) {
+            if (entity instanceof LSLine_1.LSLine) {
+                if (entity.isComment()) {
+                    valueToInsert += transformer.transformComment(entity.getComment());
                 }
                 else {
-                    valueToInsert += transformer.transformKeyValue(line.getKey(), line.getValue());
+                    valueToInsert += transformer.transformKeyValue(entity.getKey(), entity.getValue());
                 }
             }
-            if (i != lines.length - 1) {
+            else if (entity instanceof LSArray_1.LSArray) {
+                valueToInsert += transformer.transformArray(entity);
+            }
+            if (index != entities.length - 1) {
                 valueToInsert += os_1.EOL;
             }
-        }
+        });
         return valueToInsert;
     };
     //https://gist.github.com/jrajav/4140206

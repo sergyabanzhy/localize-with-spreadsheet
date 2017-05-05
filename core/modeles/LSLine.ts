@@ -51,7 +51,7 @@ export class LSLine implements LSEntity {
     }
 
     getComment() {
-        return this._key;
+        return (this._isComment) ? this._key: "";
     }
 
     getKey() {
