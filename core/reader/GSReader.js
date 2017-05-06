@@ -5,7 +5,6 @@ var Q = require("q");
 var WorksheetReader_1 = require("./WorksheetReader");
 var LSLine_1 = require("../modeles/LSLine");
 var LSArray_1 = require("../modeles/LSArray");
-var EOL = require('os').EOL;
 //language=RegExp
 var arrayStartRegex = new RegExp("\\[[\\w\\-_]+]");
 //language=RegExp
@@ -31,7 +30,7 @@ var GSReader = (function () {
                         self.fetchDeferred.reject(err);
                     }
                     else {
-                        var worksheetReader = new WorksheetReader_1.WorksheetReader(this._sheetsFilter, data.worksheets);
+                        var worksheetReader = new WorksheetReader_1.WorksheetReader(self.sheetsFilter, data.worksheets);
                         worksheetReader.read(function (fetchedWorksheets) {
                             self.fetchedWorksheets = fetchedWorksheets;
                             self.fetchDeferred.resolve(self.fetchedWorksheets);
@@ -46,24 +45,25 @@ var GSReader = (function () {
         }
     };
     ;
-    GSReader.prototype.select = function (keyCol, valCol) {
+    GSReader.prototype.select = function (sheets, keyCol, valCol, cb) {
         var deferred = Q.defer();
         var self = this;
         Q.when(self.fetchAllCells(), function (worksheets) {
-            var extractedLines = this.extractFromRawData(worksheets, keyCol, valCol);
+            var extractedLines = self.extractFromRawData(worksheets, keyCol, valCol);
             deferred.resolve(extractedLines);
         }).fail(function (error) {
-            //console.error('Cannot fetch data');
+            console.error(error);
         });
         return deferred.promise;
     };
     ;
     GSReader.prototype.extractFromRawData = function (rawWorksheets, keyCol, valCol) {
+        var _this = this;
         var extractedLines = [];
-        for (var i = 0; i < rawWorksheets.length; i++) {
-            var extracted = this.extractFromWorksheet(rawWorksheets[i], keyCol, valCol);
+        rawWorksheets.forEach(function (worksheet) {
+            var extracted = _this.extractFromWorksheet(worksheet, keyCol, valCol);
             extractedLines.push.apply(extractedLines, extracted);
-        }
+        });
         return extractedLines;
     };
     ;
@@ -84,28 +84,27 @@ var GSReader = (function () {
                     valIndex = i;
                 }
             }
-            for (i = 1; i < rows.length; i++) {
-                var row = rows[i];
-                if (row) {
-                    var keyValue = row[keyIndex];
-                    var valValue = row[valIndex];
-                    if (keyValue.match(arrayStartRegex)) {
-                        arrayName = keyValue.substring(1, keyValue.indexOf("]"));
-                        isInArray = true;
-                    }
-                    else if (keyValue.match(arrayEndRegex)) {
-                        results.push(new LSArray_1.LSArray(arrayName, array));
-                        arrayName = "";
-                        isInArray = false;
-                    }
-                    else if (isInArray) {
-                        array.push(new LSLine_1.LSLine(keyValue, valValue));
-                    }
-                    else {
-                        results.push(new LSLine_1.LSLine(keyValue, valValue));
-                    }
+            rows.filter(function (row) { return row; }).forEach(function (row) {
+                var keyValue = row[keyIndex];
+                var valValue = row[valIndex];
+                if (!keyValue)
+                    keyValue = "";
+                if (keyValue.match(arrayStartRegex)) {
+                    arrayName = keyValue.substring(1, keyValue.indexOf("]"));
+                    isInArray = true;
                 }
-            }
+                else if (keyValue.match(arrayEndRegex)) {
+                    results.push(new LSArray_1.LSArray(arrayName, array));
+                    arrayName = "";
+                    isInArray = false;
+                }
+                else if (isInArray) {
+                    array.push(new LSLine_1.LSLine(keyValue, valValue));
+                }
+                else {
+                    results.push(new LSLine_1.LSLine(keyValue, valValue));
+                }
+            });
         }
         return results;
     };

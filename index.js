@@ -10,26 +10,28 @@ var Gs2File = (function () {
         this.defaultFormat = "";
         this.defaultEncoding = "";
         this.setValueCol = function (valueCol) {
-            this._defaultValueCol = valueCol;
+            this.defaultValueCol = valueCol;
         };
         this.setKeyCol = function (keyCol) {
-            this._defaultKeyCol = keyCol;
+            this.defaultKeyCol = keyCol;
         };
         this.setFormat = function (format) {
-            this._defaultFormat = format;
+            this.defaultFormat = format;
         };
         this.setEncoding = function (encoding) {
-            this._defaultEncoding = encoding;
+            this.defaultEncoding = encoding;
         };
         this.reader = reader;
         this.writer = writer;
     }
     Gs2File.fromGoogleSpreadsheet = function (spreadsheetKey, sheets) {
+        if (sheets === void 0) { sheets = "*"; }
         var fileWriter = new FileWriter_1.FileWriter();
         return new Gs2File(new GSReader_1.GSReader(spreadsheetKey, sheets), fileWriter);
     };
     ;
     Gs2File.prototype.save = function (outputPath, opts, cb) {
+        if (cb === void 0) { cb = null; }
         console.log('saving ' + outputPath);
         var self = this;
         this.opts = opts || {};

@@ -27,8 +27,13 @@ export function testArray(test) {
     var result = reader.extractFromWorksheet(rawWorksheet, 'Key', 'Value_fr');
 
     test.equal(1, result.length);
-    test.equal(result[0].array.length, 2);
-    test.equal('test-array', result[0].key);
+    let firstResult = result[0];
+    if (firstResult instanceof LSArray) {
+        test.equal(firstResult.array.length, 2);
+        test.equal('test-array', firstResult.key);
+        test.done();
+    } else {
+        throw new Error("Result isn't an array");
+    }
 
-    test.done();
 }

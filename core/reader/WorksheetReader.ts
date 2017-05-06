@@ -26,7 +26,9 @@ export class WorksheetReader {
 
     next(cb: Function) {
         var self = this;
+
         if (this.index < this.worksheets.length) {
+
             var index = this.index++;
             var currentWorksheet = this.worksheets[index];
             if (GSReader.shouldUseWorksheet(this.filterSheets, currentWorksheet.title, index)) {

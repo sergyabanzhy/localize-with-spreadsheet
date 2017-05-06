@@ -10,7 +10,6 @@ import {LSArray} from "../modeles/LSArray";
 import {Reader} from "./Reader";
 import {LSEntity} from "../modeles/LSEntity";
 
-const EOL = require('os').EOL;
 //language=RegExp
 const arrayStartRegex = new RegExp("\\[[\\w\\-_]+]");
 //language=RegExp
@@ -44,7 +43,7 @@ export class GSReader implements Reader {
                         console.warn('WARNING! Check that your spreadsheet is "Published" in "File > Publish to the web..."');
                         self.fetchDeferred.reject(err);
                     } else {
-                        var worksheetReader = new WorksheetReader(this._sheetsFilter, data.worksheets);
+                        var worksheetReader = new WorksheetReader(self.sheetsFilter, data.worksheets);
                         worksheetReader.read(function (fetchedWorksheets) {
                             self.fetchedWorksheets = fetchedWorksheets;
                             self.fetchDeferred.resolve(self.fetchedWorksheets);
@@ -59,26 +58,26 @@ export class GSReader implements Reader {
         }
     };
 
-    select(keyCol, valCol): Promise<LSEntity[]> {
+    select(sheets, keyCol, valCol, cb): Promise<LSEntity[]> {
         var deferred = Q.defer();
         var self = this;
 
         Q.when(self.fetchAllCells(), function (worksheets) {
-            const extractedLines = this.extractFromRawData(worksheets, keyCol, valCol);
+            const extractedLines = self.extractFromRawData(worksheets, keyCol, valCol);
             deferred.resolve(extractedLines);
         }).fail(function (error) {
-            //console.error('Cannot fetch data');
+            console.error(error);
         });
 
         return deferred.promise;
     };
 
     extractFromRawData(rawWorksheets, keyCol, valCol): LSEntity[] {
-        var extractedLines = [];
-        for (var i = 0; i < rawWorksheets.length; i++) {
-            var extracted = this.extractFromWorksheet(rawWorksheets[i], keyCol, valCol);
+        const extractedLines = [];
+        rawWorksheets.forEach(worksheet => {
+            const extracted = this.extractFromWorksheet(worksheet, keyCol, valCol);
             extractedLines.push.apply(extractedLines, extracted);
-        }
+        });
 
         return extractedLines;
     };
@@ -102,26 +101,25 @@ export class GSReader implements Reader {
                     valIndex = i;
                 }
             }
-            for (i = 1; i < rows.length; i++) {
-                var row = rows[i];
-                if (row) {
-                    var keyValue = row[keyIndex];
-                    var valValue = row[valIndex];
+            rows.filter(row => row).forEach(row => {
+                var keyValue = row[keyIndex];
+                var valValue = row[valIndex];
 
-                    if (keyValue.match(arrayStartRegex)) {
-                        arrayName = keyValue.substring(1, keyValue.indexOf("]"));
-                        isInArray = true;
-                    } else if (keyValue.match(arrayEndRegex)) {
-                        results.push(new LSArray(arrayName, array));
-                        arrayName = "";
-                        isInArray = false;
-                    } else if (isInArray) {
-                        array.push(new LSLine(keyValue, valValue));
-                    } else {
-                        results.push(new LSLine(keyValue, valValue));
-                    }
+                if (!keyValue) keyValue = "";
+
+                if (keyValue.match(arrayStartRegex)) {
+                    arrayName = keyValue.substring(1, keyValue.indexOf("]"));
+                    isInArray = true;
+                } else if (keyValue.match(arrayEndRegex)) {
+                    results.push(new LSArray(arrayName, array));
+                    arrayName = "";
+                    isInArray = false;
+                } else if (isInArray) {
+                    array.push(new LSLine(keyValue, valValue));
+                } else {
+                    results.push(new LSLine(keyValue, valValue));
                 }
-            }
+            });
         }
 
         return results;

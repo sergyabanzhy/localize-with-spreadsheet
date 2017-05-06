@@ -20,28 +20,28 @@ export class Gs2File {
         this.writer = writer;
     }
 
-    static fromGoogleSpreadsheet(spreadsheetKey: string, sheets: string): Gs2File {
+    static fromGoogleSpreadsheet(spreadsheetKey: string, sheets: string = "*"): Gs2File {
         let fileWriter = new FileWriter();
         return new Gs2File(new GSReader(spreadsheetKey, sheets), fileWriter);
     };
 
     setValueCol = function (valueCol) {
-        this._defaultValueCol = valueCol;
+        this.defaultValueCol = valueCol;
     };
 
     setKeyCol = function (keyCol) {
-        this._defaultKeyCol = keyCol;
+        this.defaultKeyCol = keyCol;
     };
 
     setFormat = function (format) {
-        this._defaultFormat = format;
+        this.defaultFormat = format;
     };
 
     setEncoding = function (encoding) {
-        this._defaultEncoding = encoding;
+        this.defaultEncoding = encoding;
     };
 
-    save(outputPath, opts, cb) {
+    save(outputPath, opts, cb = null) {
         console.log('saving ' + outputPath);
         const self = this;
 
